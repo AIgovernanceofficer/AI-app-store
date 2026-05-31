@@ -144,28 +144,5 @@ Na aanpassing van de `.jsx` moet de offline HTML opnieuw gebouwd worden (React +
 - **Lettertypes** Playfair Display & DM Sans, als data ingebed in de offline versie
 - Geen build-tools of dependencies nodig om de HTML te gebruiken
 
----
 
-## Licentie
-
-[![Licentie: CC BY-NC-ND 4.0](https://img.shields.io/badge/Licentie-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.nl)
-
-© 2026 **[Naam auteur / instelling]**
-
-Dit werk valt onder een **Creative Commons Naamsvermelding-NietCommercieel-GeenAfgeleideWerken 4.0 Internationaal-licentie** (CC BY-NC-ND 4.0).
-
-Dit betekent dat je vrij bent om:
-
-- **Delen** — het materiaal kopiëren en verspreiden in elk medium of formaat,
-
-onder de volgende voorwaarden:
-
-- 🏷️ **Naamsvermelding** — je moet de maker vermelden, een link naar de licentie plaatsen en aangeven of er wijzigingen zijn gemaakt.
-- 🚫 **NietCommercieel** — je mag het materiaal niet voor commerciële doeleinden gebruiken.
-- 🚫 **GeenAfgeleideWerken** — als je het materiaal bewerkt of erop voortbouwt, mag je het gewijzigde materiaal niet verspreiden.
-
-De volledige licentietekst vind je op:
-<https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.nl>
-
-Een leesbare samenvatting staat hier:
 <https://creativecommons.org/licenses/by-nc-nd/4.0/deed.nl>
