@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatientSim — Moeilijke gesprekken oefenen met AI</title>
+<style>
+  :root{
+    --bg:#FBF6EF;--card:#FFFFFF;--ink:#3A2A20;--mute:#9A8576;--line:#EFE2D4;
+    --peach:#F4A582;--terra:#D9744F;--terraDeep:#BE5A37;--gold:#E8B04B;--amber:#F0C36B;
+    --sage:#7BA487;--sageDeep:#5C846A;--alert:#C8553D;
+    --shadow:0 10px 30px rgba(120,70,40,.10);--shadowSm:0 4px 14px rgba(120,70,40,.08);
+    --serif:'Fraunces',Georgia,'Times New Roman',serif;--sans:'Nunito','Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
+    background-image:radial-gradient(circle at 12% 8%,rgba(244,165,130,.14),transparent 45%),
+                     radial-gradient(circle at 88% 4%,rgba(232,176,75,.13),transparent 42%);}
+  .head-in{max-width:840px;margin:0 auto;padding:26px 24px 8px;display:flex;align-items:center;gap:16px;}
+  .applogo{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--peach),var(--terra));
+    display:grid;place-items:center;font-size:32px;box-shadow:var(--shadowSm);}
+  .title{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.6px;}
+  .sub{font-size:13.5px;color:var(--mute);margin-top:1px;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;color:var(--terraDeep);background:#FBE6DB;
+    border-radius:20px;padding:3px 11px;margin-top:7px;letter-spacing:.3px;}
+  .pill.ai{color:var(--sageDeep);background:#EAF2EC;}
+  .wrap{max-width:840px;margin:0 auto;padding:18px 24px 70px;}
+  .panel{background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:30px 30px 34px;}
+  .fade{animation:fade .45s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  @keyframes pulse{0%,100%{opacity:.45;}50%{opacity:1;}}
+  .pulse{animation:pulse 1.2s ease-in-out infinite;}
+  .sec{margin-bottom:24px;}
+  .sec-t{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:12px;letter-spacing:-.2px;display:flex;align-items:center;gap:8px;}
+  .sec-t .n{width:24px;height:24px;border-radius:50%;background:var(--amber);color:#fff;font-family:var(--sans);font-size:13px;font-weight:800;display:grid;place-items:center;}
+  .grid{display:grid;gap:11px;}
+  .g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:repeat(3,1fr);}.g4{grid-template-columns:repeat(4,1fr);}
+  .choice{display:flex;gap:11px;align-items:center;padding:14px 16px;border-radius:16px;border:2px solid var(--line);background:#FFFDFB;cursor:pointer;transition:all .2s cubic-bezier(.2,.8,.2,1);}
+  .choice:hover{transform:translateY(-2px);box-shadow:var(--shadowSm);border-color:var(--peach);}
+  .choice.col{flex-direction:column;align-items:flex-start;gap:5px;}
+  .choice.active{border-color:var(--terra);background:#FCEFE7;box-shadow:0 4px 0 rgba(217,116,79,.25);}
+  .choice .ic{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--amber),var(--gold));display:grid;place-items:center;font-size:18px;flex:none;}
+  .choice .lab{font-weight:700;}.choice .d{font-size:12.5px;color:var(--mute);line-height:1.4;}
+  .btn{cursor:pointer;border:none;font-family:var(--sans);font-weight:700;transition:all .2s cubic-bezier(.2,.8,.2,1);}
+  .btn-primary{width:100%;padding:17px;border-radius:16px;background:linear-gradient(135deg,var(--terra),var(--terraDeep));color:#fff;font-size:16.5px;letter-spacing:.2px;margin-top:8px;box-shadow:var(--shadowSm);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+  .btn-primary:disabled{opacity:.5;cursor:default;transform:none;}
+  .disc{font-size:11.5px;color:var(--mute);text-align:center;margin-top:16px;line-height:1.5;}
+  .tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center;}
+  .tag{font-size:11.5px;padding:5px 12px;border-radius:20px;background:#FCEFE7;color:var(--terraDeep);font-weight:700;}
+  .link{background:transparent;color:var(--mute);font-size:13px;padding:6px 0;font-weight:700;}
+  .scen{font-size:13.5px;color:var(--mute);margin-bottom:18px;font-style:italic;}
+  .meter-h{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;font-weight:700;}
+  .meter{height:10px;border-radius:8px;background:var(--line);overflow:hidden;margin-bottom:18px;}
+  .meter-f{height:100%;border-radius:8px;transition:width .5s ease,background .5s ease;}
+  .chat{background:#FFFDFB;border:2px solid var(--line);border-radius:18px;padding:18px;height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;}
+  .bub-w{max-width:84%;}.bub-w.p{align-self:flex-start;}.bub-w.u{align-self:flex-end;}
+  .bub-l{font-size:10.5px;color:var(--mute);margin-bottom:3px;font-weight:700;}.bub-w.u .bub-l{text-align:right;}
+  .bub{padding:12px 15px;border-radius:16px;font-size:14.5px;line-height:1.5;}
+  .bub.p{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-bottom-left-radius:4px;box-shadow:var(--shadowSm);}
+  .bub.u{background:linear-gradient(135deg,var(--terra),var(--terraDeep));color:#fff;border-bottom-right-radius:4px;}
+  .coach{margin-top:13px;padding:11px 15px;background:#EEF5F0;border:1.5px solid var(--sage);border-radius:14px;font-size:13px;color:var(--sageDeep);}
+  .inrow{margin-top:14px;display:flex;gap:10px;align-items:flex-end;}
+  textarea,input[type=password],input[type=text],select{font-family:var(--sans);font-size:14.5px;color:var(--ink);background:#FFFDFB;border:2px solid var(--line);border-radius:14px;padding:13px 15px;}
+  textarea{flex:1;resize:none;}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--peach);}
+  textarea::placeholder,input::placeholder{color:var(--mute);}
+  .btn-send{padding:13px 22px;border-radius:14px;background:linear-gradient(135deg,var(--terra),var(--terraDeep));color:#fff;font-size:14.5px;}
+  .btn-send:disabled{opacity:.5;cursor:default;}
+  .btn-end{margin-top:13px;width:100%;padding:13px;border-radius:14px;background:#FFFDFB;border:2px solid var(--terra);color:var(--terraDeep);font-size:14.5px;}
+  .btn-end:disabled{opacity:.4;cursor:default;}
+  .fb-top{text-align:center;margin-bottom:28px;}
+  .fb-cap{font-family:var(--serif);font-size:15px;color:var(--mute);}
+  .fb-score{font-family:var(--serif);font-size:64px;font-weight:600;line-height:1;background:linear-gradient(135deg,var(--terra),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .dim{margin-bottom:13px;}.dim-h{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;font-weight:700;}
+  .dim-m{height:8px;border-radius:6px;background:var(--line);overflow:hidden;}.dim-f{height:100%;border-radius:6px;transition:width .6s ease;}
+  .analyse{background:#FCEFE7;border:1.5px solid var(--peach);border-left:5px solid var(--terra);border-radius:14px;padding:18px;margin-bottom:18px;font-size:14.5px;line-height:1.6;}
+  .fb-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+  .fb-card{background:#FFFDFB;border:1.5px solid var(--line);border-radius:16px;padding:18px;}
+  .fb-card h4{font-size:13.5px;margin-bottom:10px;}.fb-card ul{padding-left:18px;display:flex;flex-direction:column;gap:7px;}
+  .fb-card li{font-size:13.5px;line-height:1.45;}
+  .fb-btns{display:flex;gap:12px;}.fb-btns .btn{flex:1;padding:15px;border-radius:14px;font-size:14.5px;}
+  /* key panel */
+  .keybox{background:#FFFDFB;border:2px solid var(--line);border-radius:16px;padding:18px;margin-bottom:22px;}
+  .keybox label{display:block;font-weight:700;font-size:13px;margin-bottom:6px;}
+  .keyrow{display:flex;gap:10px;flex-wrap:wrap;}
+  .keyrow input{flex:1;min-width:200px;}
+  .provtog{display:flex;gap:8px;margin-bottom:14px;}
+  .provtog .pt{flex:1;padding:11px;border-radius:12px;border:2px solid var(--line);background:#FFFDFB;cursor:pointer;text-align:center;font-weight:700;font-size:13.5px;transition:all .2s;}
+  .provtog .pt.active{border-color:var(--terra);background:#FCEFE7;color:var(--terraDeep);}
+  .keynote{font-size:11.5px;color:var(--mute);margin-top:10px;line-height:1.5;}
+  .keystatus{font-size:12px;font-weight:700;margin-top:8px;}
+  .keystatus.ok{color:var(--sageDeep);}.keystatus.no{color:var(--alert);}
+  .err{background:#FBE3DD;border:1.5px solid var(--alert);color:#8A2E1E;border-radius:12px;padding:11px 14px;font-size:13px;margin-top:12px;}
+  .small-link{background:none;border:none;color:var(--terraDeep);font-weight:700;cursor:pointer;font-size:12px;text-decoration:underline;padding:0;}
+  .keyrow select{flex:1;min-width:200px;cursor:pointer;}
+  .howto{margin-top:12px;border:1.5px dashed var(--peach);border-radius:13px;overflow:hidden;background:#FFFAF5;}
+  .howto summary{cursor:pointer;list-style:none;padding:11px 14px;font-weight:700;font-size:12.5px;color:var(--terraDeep);display:flex;align-items:center;gap:7px;}
+  .howto summary::-webkit-details-marker{display:none;}
+  .howto summary::before{content:"▸";transition:transform .2s;}
+  .howto[open] summary::before{transform:rotate(90deg);}
+  .howto .body{padding:2px 16px 14px 16px;font-size:12.5px;color:var(--ink);line-height:1.55;}
+  .howto ol{margin:6px 0 8px 18px;display:flex;flex-direction:column;gap:5px;}
+  .howto a{color:var(--terraDeep);font-weight:700;}
+  .keyopen{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;color:var(--terraDeep);}
+  @media(max-width:600px){.g3,.g4,.g2,.fb-cols{grid-template-columns:1fr 1fr;}.panel{padding:22px 18px 26px;}}
+</style>
+</head>
+<body>
+<div class="head-in">
+  <div class="applogo">🩺</div>
+  <div>
+    <div class="title">PatientSim</div>
+    <div class="sub">Moeilijke patiëntgesprekken oefenen met een AI-simulatiepatiënt</div>
+    <span class="pill ai" id="modepill">AI-MODUS</span>
+  </div>
+</div>
+<div class="wrap"><div class="panel" id="app"></div></div>
+
+<script>
+"use strict";
+//==================== DATA ====================
+const SETTINGS=[
+ {id:"huisarts",label:"Huisarts",icon:"⚕️"},{id:"seh",label:"Spoedeisende hulp",icon:"🚑"},
+ {id:"poli",label:"Polikliniek",icon:"🏥"},{id:"verpleeg",label:"Verpleegafdeling",icon:"🛏️"},
+ {id:"triage",label:"Telefonische triage",icon:"☎️"},{id:"apotheek",label:"Apotheek / balie",icon:"💊"}];
+const PERSONAS=[
+ {id:"boos",label:"Boze patiënt",desc:"Onderbreekt, beschuldigt, dreigt met klacht",icon:"😠"},
+ {id:"wantrouwig",label:"Wantrouwige patiënt",desc:"Gelooft de arts niet, noemt internetbronnen",icon:"🤨"},
+ {id:"angstig",label:"Angstige patiënt",desc:"Paniek, herhaalt vragen, zoekt geruststelling",icon:"😰"},
+ {id:"veeleisend",label:"Veeleisende patiënt",desc:"Eist antibiotica, opioïden, scan of doorverwijzing",icon:"🙅"},
+ {id:"laaggeletterd",label:"Laaggeletterde patiënt",desc:"Begrijpt uitleg slecht, zegt 'ja' zonder begrip",icon:"😕"},
+ {id:"familie",label:"Familielid als drukfactor",desc:"Partner/kind domineert het gesprek",icon:"👪"},
+ {id:"nonadherent",label:"Non-adherente patiënt",desc:"Neemt medicatie niet, minimaliseert risico's",icon:"🤷"}];
+const SCENARIOS=[
+ "Patiënt eist antibiotica bij een virale luchtweginfectie","Patiënt is boos over de wachttijd",
+ "Patiënt weigert vaccinatie","Patiënt wil een onnodige MRI",
+ "Patiënt met chronische pijn vraagt om sterkere medicatie","Patiënt begrijpt de ontslaginstructies niet",
+ "Familielid beschuldigt zorgverlener van nalatigheid"];
+const LEVELS=[{id:1,label:"Niveau 1",desc:"Licht gespannen"},{id:2,label:"Niveau 2",desc:"Emotioneel en wantrouwig"},
+ {id:3,label:"Niveau 3",desc:"Boos, onderbrekend, escalerend"},{id:4,label:"Niveau 4",desc:"Klachtwaardig of ethisch complex"}];
+const MODES=[{id:"coach",label:"Coach-modus",desc:"Subtiele hints tijdens het gesprek",icon:"🧭"},
+ {id:"examen",label:"Examenmodus",desc:"Geen hints, alleen eindbeoordeling",icon:"📋"}];
+
+//==================== LLM-CONFIG ====================
+const LS_KEY="patientsim_llm";
+const cfg={ provider:"anthropic", key:"", model:"" };
+// Beschikbare modellen per aanbieder; eerste = standaard
+const MODELS={
+ anthropic:[
+  {id:"claude-sonnet-4-5-20250929",label:"Claude Sonnet 4.5 — aanbevolen"},
+  {id:"claude-opus-4-1-20250805",label:"Claude Opus 4.1 — krachtigst"},
+  {id:"claude-3-5-haiku-20241022",label:"Claude Haiku 3.5 — snel & goedkoop"}
+ ],
+ openai:[
+  {id:"gpt-4o-mini",label:"GPT-4o mini — aanbevolen, goedkoop"},
+  {id:"gpt-4o",label:"GPT-4o — krachtiger"},
+  {id:"gpt-4.1-mini",label:"GPT-4.1 mini"}
+ ]
+};
+const defaultModel=p=>MODELS[p][0].id;
+// Uitleg per aanbieder: waar haal je een sleutel
+const PROVIDER_INFO={
+ anthropic:{
+  name:"Anthropic",
+  prefix:"sk-ant-...",
+  url:"https://console.anthropic.com/settings/keys",
+  urlLabel:"console.anthropic.com",
+  steps:["Maak een account op console.anthropic.com en log in.",
+   "Voeg onder Billing wat tegoed toe (een paar euro is genoeg voor veel gesprekken).",
+   "Ga naar Settings → API keys en klik op 'Create Key'.",
+   "Kopieer de sleutel (begint met sk-ant-) en plak hem hieronder."]
+ },
+ openai:{
+  name:"OpenAI",
+  prefix:"sk-...",
+  url:"https://platform.openai.com/api-keys",
+  urlLabel:"platform.openai.com",
+  steps:["Maak een account op platform.openai.com en log in.",
+   "Voeg onder Billing een betaalmethode of tegoed toe.",
+   "Ga naar API keys en klik op 'Create new secret key'.",
+   "Kopieer de sleutel (begint met sk-) en plak hem hieronder — hij is daarna niet meer zichtbaar."]
+ }
+};
+
+function loadCfg(){
+ try{const s=JSON.parse(localStorage.getItem(LS_KEY)||"{}");
+  if(s.provider)cfg.provider=s.provider; if(s.key)cfg.key=s.key; if(s.model)cfg.model=s.model;}catch(e){}
+}
+function saveCfg(){ try{localStorage.setItem(LS_KEY,JSON.stringify(cfg));}catch(e){} }
+function clearCfg(){ cfg.key="";cfg.model=""; try{localStorage.removeItem(LS_KEY);}catch(e){} }
+
+//==================== LLM-AANROEP ====================
+async function llmChat(system,history){
+ // history: [{role:'user'|'assistant', content:'...'}]
+ if(cfg.provider==="anthropic"){
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+   method:"POST",
+   headers:{"Content-Type":"application/json","x-api-key":cfg.key,
+     "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+   body:JSON.stringify({model:cfg.model||defaultModel("anthropic"),max_tokens:1000,system,messages:history})
+  });
+  if(!res.ok){throw new Error(await errText(res));}
+  const data=await res.json();
+  return (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+ } else {
+  const msgs=[{role:"system",content:system},...history];
+  const res=await fetch("https://api.openai.com/v1/chat/completions",{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Authorization":"Bearer "+cfg.key},
+   body:JSON.stringify({model:cfg.model||defaultModel("openai"),max_tokens:1000,messages:msgs})
+  });
+  if(!res.ok){throw new Error(await errText(res));}
+  const data=await res.json();
+  return (data.choices?.[0]?.message?.content||"").trim();
+ }
+}
+async function errText(res){
+ let t="";try{const j=await res.json();t=j.error?.message||JSON.stringify(j.error||j);}catch(e){t=res.statusText;}
+ return `${res.status}: ${t}`;
+}
+function parseJSON(txt){
+ try{return JSON.parse(txt.replace(/```json|```/g,"").trim());}catch(e){
+  const m=txt.match(/\{[\s\S]*\}/); if(m){try{return JSON.parse(m[0]);}catch(_){}}
+  return null;
+ }
+}
+
+//==================== STATE ====================
+const S={setting:"huisarts",persona:"veeleisend",scenario:SCENARIOS[0],level:2,mode:"coach"};
+let stage="setup",messages=[],tension=35,busy=false,lastHint="",lastErr="";
+const el=id=>document.getElementById(id);
+const app=el("app");
+const obj=(arr,id)=>arr.find(x=>x.id===id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+//==================== PROMPTS ====================
+function systemPrompt(){
+ const so=obj(SETTINGS,S.setting),po=obj(PERSONAS,S.persona),lo=obj(LEVELS,S.level);
+ return `Je bent een SIMULATIEPATIËNT in een trainingsapp voor zorgprofessionals. Je speelt een patiënt — NOOIT de zorgverlener.
+
+SETTING: ${so.label}
+SCENARIO: ${S.scenario}
+PATIËNTTYPE: ${po.label} — ${po.desc}
+MOEILIJKHEIDSGRAAD: ${lo.label} (${lo.desc})
+
+REGELS:
+- Reageer realistisch in het Nederlands, alsof je de patiënt bent. Korte, natuurlijke spreektaal (1-4 zinnen).
+- Reageer op de TOON en INHOUD van de zorgverlener. Empathie, structuur en goede uitleg verlagen je spanning; jargon, afpoeieren of gebrek aan erkenning verhogen die.
+- Blijf strikt in je rol. Geef geen meta-commentaar, geen feedback, geen diagnose.
+- Pas de heftigheid aan de moeilijkheidsgraad aan: hoe hoger het niveau, hoe sterker je emotie.
+
+OUTPUT: uitsluitend geldige JSON, niets anders, geen markdown:
+{"reply":"<wat de patiënt zegt>","tension":<geheel getal 0-100 = je spanningsniveau na deze reactie>,"hint":"<coachende tip voor de zorgverlener over een betere volgende stap, max 12 woorden>"}`;
+}
+function feedbackPrompt(){
+ const po=obj(PERSONAS,S.persona);
+ return `Je bent een ervaren communicatietrainer in de zorg. Beoordeel het consult van een zorgverlener met een simulatiepatiënt. Scenario: ${S.scenario}. Patiënttype: ${po.label}.
+
+Geef GEEN simpel goed/fout, maar een consultanalyse. Scoor elke dimensie 0-100: empathie, begrijpelijke_uitleg, de_escalatie, grenzen_stellen, shared_decision_making, veiligheidsnetadvies, medische_juistheid, samenvatten_checkback.
+
+OUTPUT: uitsluitend geldige JSON, niets anders, geen markdown:
+{"scores":{"empathie":n,"begrijpelijke_uitleg":n,"de_escalatie":n,"grenzen_stellen":n,"shared_decision_making":n,"veiligheidsnetadvies":n,"medische_juistheid":n,"samenvatten_checkback":n},"sterk":["..",".."],"verbeterpunten":["..",".."],"analyse":"<2-4 zinnen narratieve feedback met een concreet voorbeeld van een betere formulering>"}`;
+}
+
+//==================== RENDER ====================
+function render(){
+ if(stage==="setup")renderSetup();
+ else if(stage==="chat")renderChat();
+ else renderFeedback();
+}
+
+function keyboxHtml(){
+ const has=!!cfg.key;
+ const info=PROVIDER_INFO[cfg.provider];
+ const opts=MODELS[cfg.provider].map(m=>`<option value="${m.id}" ${cfg.model===m.id?'selected':''}>${esc(m.label)}</option>`).join("");
+ return `<div class="keybox">
+   <div class="sec-t" style="margin-bottom:10px">🔑 AI-verbinding</div>
+   <div class="provtog">
+    <div class="pt ${cfg.provider==='anthropic'?'active':''}" data-prov="anthropic">Anthropic (Claude)</div>
+    <div class="pt ${cfg.provider==='openai'?'active':''}" data-prov="openai">OpenAI (GPT)</div>
+   </div>
+
+   <details class="howto" ${has?'':'open'}>
+    <summary>Hoe kom ik aan een ${info.name}-sleutel?</summary>
+    <div class="body">
+     <ol>${info.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
+     <a class="keyopen" href="${info.url}" target="_blank" rel="noopener">Open ${info.urlLabel} →</a>
+    </div>
+   </details>
+
+   <label style="margin-top:14px">API-sleutel</label>
+   <div class="keyrow">
+    <input type="password" id="keyinp" placeholder="${info.prefix}" value="${esc(cfg.key)}">
+    <button class="btn btn-send" id="keysave" style="padding:13px 18px">Bewaren</button>
+    ${has?'<button class="btn" id="keyclear" style="padding:13px 16px;background:#FFFDFB;border:2px solid var(--line);color:var(--mute);border-radius:14px">Wissen</button>':''}
+   </div>
+
+   <label style="margin-top:12px">Model</label>
+   <div class="keyrow"><select id="modelsel">${opts}</select></div>
+
+   <div class="keystatus ${has?'ok':'no'}">${has?'✓ Sleutel ingesteld — klaar om te oefenen':'Nog geen sleutel ingesteld'}</div>
+   <div class="keynote">Je sleutel wordt alleen lokaal in deze browser bewaard (localStorage) en gaat rechtstreeks naar ${info.name} — niet naar een server van deze app. Gebruik bij voorkeur een sleutel met een uitgavelimiet.</div>
+  </div>`;
+}
+
+function renderSetup(){
+ const sec=(n,t,inner)=>`<div class="sec"><div class="sec-t"><span class="n">${n}</span>${t}</div>${inner}</div>`;
+ const ch=(active,attrs,inner,col,icon)=>`<div class="choice${col?' col':''}${active?' active':''}" ${attrs}>${icon?`<span class="ic">${icon}</span>`:""}${col?`<div>${inner}</div>`:inner}</div>`;
+ const has=!!cfg.key;
+ app.innerHTML=`<div class="fade">
+  ${keyboxHtml()}
+  ${sec(1,"Kies de setting",`<div class="grid g3">${SETTINGS.map(s=>ch(S.setting===s.id,`data-k="setting" data-v="${s.id}"`,`<span class="lab" style="font-weight:700">${s.label}</span>`,false,s.icon)).join("")}</div>`)}
+  ${sec(2,"Kies het patiënttype",`<div class="grid g2">${PERSONAS.map(p=>ch(S.persona===p.id,`data-k="persona" data-v="${p.id}"`,`<span class="lab">${p.label}</span><span class="d">${p.desc}</span>`,true,p.icon)).join("")}</div>`)}
+  ${sec(3,"Kies een scenario",`<div style="display:flex;flex-direction:column;gap:9px">${SCENARIOS.map(s=>ch(S.scenario===s,`data-k="scenario" data-v="${s.replace(/"/g,'&quot;')}"`,`<span style="font-size:14px">${s}</span>`)).join("")}</div>`)}
+  ${sec(4,"Moeilijkheidsgraad",`<div class="grid g4">${LEVELS.map(l=>ch(S.level===l.id,`data-k="level" data-v="${l.id}"`,`<span class="lab">${l.label}</span><span class="d">${l.desc}</span>`,true)).join("")}</div>`)}
+  ${sec(5,"Trainingsmodus",`<div class="grid g2">${MODES.map(m=>ch(S.mode===m.id,`data-k="mode" data-v="${m.id}"`,`<span class="lab">${m.label}</span><span class="d">${m.desc}</span>`,true,m.icon)).join("")}</div>`)}
+  <button class="btn btn-primary" id="start" ${has?'':'disabled'}>${has?'Start consult →':'Vul eerst een API-sleutel in'}</button>
+  <p class="disc">Simulatie ter training — geen echte medische diagnose en geen vervanging van supervisie.</p>
+ </div>`;
+ bindKeybox();
+ app.querySelectorAll("[data-k]").forEach(n=>n.onclick=()=>{const k=n.dataset.k;let v=n.dataset.v;if(k==="level")v=+v;S[k]=v;renderSetup();});
+ el("start").onclick=startSim;
+}
+
+function bindKeybox(){
+ app.querySelectorAll("[data-prov]").forEach(n=>n.onclick=()=>{
+   if(cfg.provider!==n.dataset.prov){cfg.provider=n.dataset.prov;cfg.model="";saveCfg();}
+   renderSetup();
+ });
+ const ks=el("keysave"); if(ks)ks.onclick=()=>{cfg.key=(el("keyinp").value||"").trim();saveCfg();renderSetup();};
+ const kc=el("keyclear"); if(kc)kc.onclick=()=>{clearCfg();renderSetup();};
+ const ms=el("modelsel"); if(ms)ms.onchange=()=>{cfg.model=ms.value;saveCfg();};
+}
+
+function renderChat(){
+ const so=obj(SETTINGS,S.setting),po=obj(PERSONAS,S.persona),lo=obj(LEVELS,S.level);
+ const tcolor=tension<40?"var(--sage)":tension<70?"var(--gold)":"var(--alert)";
+ const tlabel=tension<40?"Rustig":tension<70?"Gespannen":"Escalerend";
+ const userTurns=messages.filter(m=>m.role==="user").length;
+ app.innerHTML=`<div class="fade">
+  <div class="tagrow">
+   <button class="btn link" id="back">← Setup</button>
+   <span class="tag">${po.icon} ${po.label}</span><span class="tag">${so.label}</span>
+   <span class="tag">${lo.label}</span><span class="tag">${S.mode==="coach"?"🧭 Coach":"📋 Examen"}</span>
+   <span class="tag">${cfg.provider==='anthropic'?'Claude':'GPT'}</span>
+  </div>
+  <div class="scen">${S.scenario}</div>
+  <div class="meter-h"><span style="color:var(--mute)">Escalatiemeter</span><span style="color:${tcolor}">${tlabel}</span></div>
+  <div class="meter"><div class="meter-f" style="width:${tension}%;background:${tcolor}"></div></div>
+  <div class="chat" id="chat"></div>
+  <div id="coachbox"></div>
+  ${lastErr?`<div class="err">⚠ ${esc(lastErr)}</div>`:""}
+  <div class="inrow"><textarea id="inp" rows="2" placeholder="Typ wat je tegen de patiënt zegt…" ${busy?'disabled':''}></textarea>
+   <button class="btn btn-send" id="send" ${busy?'disabled':''}>Stuur</button></div>
+  <button class="btn btn-end" id="end" ${(userTurns===0||busy)?"disabled":""}>Consult afronden &amp; feedback ophalen</button>
+ </div>`;
+ const chat=el("chat");
+ chat.innerHTML=messages.map(m=>{const p=m.role==="patient";
+   return `<div class="bub-w ${p?'p':'u'}"><div class="bub-l">${p?'Patiënt':'Jij'}</div><div class="bub ${p?'p':'u'}">${esc(m.text)}</div></div>`;}).join("")
+   +(busy?`<div class="pulse" style="font-size:13px;color:var(--mute)">Patiënt reageert…</div>`:"");
+ chat.scrollTop=chat.scrollHeight;
+ el("back").onclick=()=>{stage="setup";resetSim();render();};
+ el("send").onclick=send; el("end").onclick=endConsult;
+ const inp=el("inp"); if(!busy)inp.focus();
+ inp.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}};
+ const cb=el("coachbox");
+ if(S.mode==="coach"&&lastHint)cb.innerHTML=`<div class="coach fade"><strong>🧭 Coach:</strong> ${esc(lastHint)}</div>`;
+}
+
+//==================== ACTIONS ====================
+function resetSim(){messages=[];tension=35;busy=false;lastHint="";lastErr="";}
+
+async function startSim(){
+ resetSim();stage="chat";busy=true;render();
+ try{
+  const txt=await llmChat(systemPrompt(),[{role:"user",content:"Start het gesprek. De zorgverlener komt net binnen en heeft nog niets gezegd. Open kort als de patiënt."}]);
+  handleReply(txt);
+ }catch(e){ lastErr=e.message||"Kon de simulatie niet starten."; }
+ busy=false;render();
+}
+
+function handleReply(txt){
+ const p=parseJSON(txt)||{reply:txt,tension:tension,hint:""};
+ messages.push({role:"patient",text:p.reply||"(geen reactie)"});
+ if(typeof p.tension==="number")tension=Math.max(0,Math.min(100,Math.round(p.tension)));
+ lastHint=(S.mode==="coach"&&p.hint)?p.hint:"";
+}
+
+function buildHistory(){
+ // patiënt-berichten als assistant (in JSON-vorm zodat het model consistent blijft)
+ return messages.map(m=>m.role==="patient"
+   ? {role:"assistant",content:JSON.stringify({reply:m.text,tension,hint:""})}
+   : {role:"user",content:m.text});
+}
+
+async function send(){
+ const inp=el("inp");const text=(inp.value||"").trim();if(!text||busy)return;
+ lastErr="";lastHint="";
+ messages.push({role:"user",text});
+ busy=true;render();
+ try{
+  const txt=await llmChat(systemPrompt(),buildHistory());
+  handleReply(txt);
+ }catch(e){ lastErr=e.message||"Verbinding mislukt."; messages.pop(); inp&&(0); }
+ busy=false;render();
+ if(lastErr){const i=el("inp"); if(i)i.value=text;}
+}
+
+async function endConsult(){
+ stage="feedback";busy=true;lastErr="";render();
+ const transcript=messages.map(m=>`${m.role==="patient"?"PATIËNT":"ZORGVERLENER"}: ${m.text}`).join("\n");
+ try{
+  const txt=await llmChat(feedbackPrompt(),[{role:"user",content:transcript||"Geen gesprek gevoerd."}]);
+  const p=parseJSON(txt);
+  if(!p||!p.scores)throw new Error("Onverwacht antwoordformaat van het model.");
+  __fb=normalizeFb(p);
+ }catch(e){ __fb={error:e.message||"De analyse kon niet worden geladen."}; }
+ busy=false;render();
+}
+
+function normalizeFb(p){
+ const sc=p.scores||{};
+ const map={empathie:"empathie",begrijpelijke_uitleg:"uitleg",de_escalatie:"deescalatie",grenzen_stellen:"grenzen",
+  shared_decision_making:"shared",veiligheidsnetadvies:"veiligheid",medische_juistheid:"medisch",samenvatten_checkback:"checkback"};
+ const scores={};for(const k in map)scores[map[k]]=Math.max(0,Math.min(100,Math.round(sc[k]??0)));
+ const avg=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/8);
+ return {scores,avg,sterk:p.sterk||[],verbeter:p.verbeterpunten||[],analyse:p.analyse||""};
+}
+
+//==================== FEEDBACK ====================
+const DIM=[["empathie","Empathie"],["uitleg","Begrijpelijke uitleg"],["deescalatie","De-escalatie"],
+ ["grenzen","Grenzen stellen"],["shared","Shared decision-making"],["veiligheid","Veiligheidsnetadvies"],
+ ["medisch","Medische juistheid"],["checkback","Samenvatten & check-back"]];
+let __fb=null;
+function renderFeedback(){
+ if(busy){app.innerHTML=`<div class="fade pulse" style="text-align:center;padding:60px;color:var(--mute);font-family:var(--serif);font-size:20px">Consult wordt geanalyseerd…</div>`;return;}
+ if(__fb&&__fb.error){
+  app.innerHTML=`<div class="fade" style="text-align:center;padding:40px">
+   <div class="err" style="text-align:left">⚠ ${esc(__fb.error)}</div>
+   <button class="btn btn-primary" id="new" style="max-width:260px;margin:22px auto 0">Terug naar setup</button></div>`;
+  el("new").onclick=()=>{__fb=null;stage="setup";resetSim();render();};return;
+ }
+ const d=__fb;
+ const bar=(label,v)=>`<div class="dim"><div class="dim-h"><span>${label}</span><span>${v}</span></div><div class="dim-m"><div class="dim-f" style="width:${v}%;background:${v<50?'var(--terra)':'var(--sage)'}"></div></div></div>`;
+ app.innerHTML=`<div class="fade">
+  <div class="fb-top"><div class="fb-cap">Consultanalyse</div><div class="fb-score">${d.avg}</div><div class="sub">gemiddelde score</div></div>
+  ${DIM.map(([k,l])=>bar(l,d.scores[k])).join("")}
+  ${d.analyse?`<div class="analyse">${esc(d.analyse)}</div>`:""}
+  <div class="fb-cols">
+   <div class="fb-card"><h4 style="color:var(--sageDeep)">✓ Sterke punten</h4><ul>${(d.sterk||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+   <div class="fb-card"><h4 style="color:var(--terraDeep)">→ Verbeterpunten</h4><ul>${(d.verbeter||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+  </div>
+  <div class="fb-btns">
+   <button class="btn" id="retry" style="background:linear-gradient(135deg,var(--terra),var(--terraDeep));color:#fff">Opnieuw dit scenario</button>
+   <button class="btn" id="new" style="background:#FFFDFB;border:2px solid var(--line);color:var(--ink)">Nieuw consult</button>
+  </div></div>`;
+ el("retry").onclick=()=>{__fb=null;startSim();};
+ el("new").onclick=()=>{__fb=null;stage="setup";resetSim();render();};
+}
+
+//==================== FONT ====================
+(function(){try{const l=document.createElement("link");l.rel="stylesheet";
+ l.href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap";
+ document.head.appendChild(l);}catch(e){}})();
+
+loadCfg();
+render();
+</script>
+</body>
+</html>
