@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatientSim — Moeilijke gesprekken oefenen</title>
+<style>
+  :root{
+    /* Warme app-store huisstijl */
+    --bg:#FBF6EF;            /* zacht crème */
+    --card:#FFFFFF;
+    --ink:#3A2A20;           /* warm donkerbruin */
+    --mute:#9A8576;
+    --line:#EFE2D4;
+    --peach:#F4A582;
+    --terra:#D9744F;         /* terracotta accent */
+    --terraDeep:#BE5A37;
+    --gold:#E8B04B;
+    --amber:#F0C36B;
+    --sage:#7BA487;          /* rustig / positief */
+    --sageDeep:#5C846A;
+    --alert:#C8553D;
+    --shadow:0 10px 30px rgba(120,70,40,.10);
+    --shadowSm:0 4px 14px rgba(120,70,40,.08);
+    --serif:'Fraunces',Georgia,'Times New Roman',serif;
+    --sans:'Nunito','Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
+    background-image:radial-gradient(circle at 12% 8%,rgba(244,165,130,.14),transparent 45%),
+                     radial-gradient(circle at 88% 4%,rgba(232,176,75,.13),transparent 42%);}
+  .head{background:transparent;}
+  .head-in{max-width:840px;margin:0 auto;padding:26px 24px 8px;display:flex;align-items:center;gap:16px;}
+  .applogo{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--peach),var(--terra));
+    display:grid;place-items:center;font-size:32px;box-shadow:var(--shadowSm);}
+  .title{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.6px;}
+  .sub{font-size:13.5px;color:var(--mute);margin-top:1px;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;color:var(--terraDeep);background:#FBE6DB;
+    border-radius:20px;padding:3px 11px;margin-top:7px;letter-spacing:.3px;}
+  .wrap{max-width:840px;margin:0 auto;padding:18px 24px 70px;}
+  .panel{background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:30px 30px 34px;}
+  .fade{animation:fade .45s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .sec{margin-bottom:24px;}
+  .sec-t{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:12px;letter-spacing:-.2px;
+    display:flex;align-items:center;gap:8px;}
+  .sec-t .n{width:24px;height:24px;border-radius:50%;background:var(--amber);color:#fff;font-family:var(--sans);
+    font-size:13px;font-weight:800;display:grid;place-items:center;}
+  .grid{display:grid;gap:11px;}
+  .g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);}
+  .choice{display:flex;gap:11px;align-items:center;padding:14px 16px;border-radius:16px;border:2px solid var(--line);
+    background:#FFFDFB;cursor:pointer;transition:all .2s cubic-bezier(.2,.8,.2,1);}
+  .choice:hover{transform:translateY(-2px);box-shadow:var(--shadowSm);border-color:var(--peach);}
+  .choice.col{flex-direction:column;align-items:flex-start;gap:5px;}
+  .choice.active{border-color:var(--terra);background:#FCEFE7;box-shadow:0 4px 0 rgba(217,116,79,.25);}
+  .choice .ic{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--amber),var(--gold));
+    display:grid;place-items:center;font-size:18px;flex:none;}
+  .choice .lab{font-weight:700;} .choice .d{font-size:12.5px;color:var(--mute);line-height:1.4;}
+  .btn{cursor:pointer;border:none;font-family:var(--sans);font-weight:700;transition:all .2s cubic-bezier(.2,.8,.2,1);}
+  .btn-primary{width:100%;padding:17px;border-radius:16px;background:linear-gradient(135deg,var(--terra),var(--terraDeep));
+    color:#fff;font-size:16.5px;letter-spacing:.2px;margin-top:8px;box-shadow:var(--shadowSm);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+  .disc{font-size:11.5px;color:var(--mute);text-align:center;margin-top:16px;line-height:1.5;}
+  .tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center;}
+  .tag{font-size:11.5px;padding:5px 12px;border-radius:20px;background:#FCEFE7;color:var(--terraDeep);font-weight:700;}
+  .link{background:transparent;color:var(--mute);font-size:13px;padding:6px 0;font-weight:700;}
+  .scen{font-size:13.5px;color:var(--mute);margin-bottom:18px;font-style:italic;}
+  .meter-h{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;font-weight:700;}
+  .meter{height:10px;border-radius:8px;background:var(--line);overflow:hidden;margin-bottom:18px;}
+  .meter-f{height:100%;border-radius:8px;transition:width .5s ease,background .5s ease;}
+  .chat{background:#FFFDFB;border:2px solid var(--line);border-radius:18px;padding:18px;height:380px;overflow-y:auto;
+    display:flex;flex-direction:column;gap:13px;}
+  .bub-w{max-width:84%;}
+  .bub-w.p{align-self:flex-start;} .bub-w.u{align-self:flex-end;}
+  .bub-l{font-size:10.5px;color:var(--mute);margin-bottom:3px;font-weight:700;}
+  .bub-w.u .bub-l{text-align:right;}
+  .bub{padding:12px 15px;border-radius:16px;font-size:14.5px;line-height:1.5;}
+  .bub.p{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-bottom-left-radius:4px;box-shadow:var(--shadowSm);}
+  .bub.u{background:linear-gradient(135deg,var(--terra),var(--terraDeep));color:#fff;border-bottom-right-radius:4px;}
+  .coach{margin-top:13px;padding:11px 15px;background:#EEF5F0;border:1.5px solid var(--sage);border-radius:14px;
+    font-size:13px;color:var(--sageDeep);}
+  .inrow{margin-top:14px;display:flex;gap:10px;align-items:flex-end;}
+  textarea{flex:1;resize:none;padding:13px 15px;border-radius:14px;border:2px solid var(--line);font-family:var(--sans);
+    font-size:14.5px;color:var(--ink);background:#FFFDFB;}
+  textarea:focus{outline:none;border-color:var(--peach);}
+  textarea::placeholder{color:var(--mute);}
+  .btn-send{padding:13px 22px;border-radius:14px;background:linear-gradient(135deg,var(--terra),var(--terraDeep));color:#fff;font-size:14.5px;}
+  .btn-end{margin-top:13px;width:100%;padding:13px;border-radius:14px;background:#FFFDFB;border:2px solid var(--terra);
+    color:var(--terraDeep);font-size:14.5px;}
+  .btn-end:disabled{opacity:.4;cursor:default;}
+  .fb-top{text-align:center;margin-bottom:28px;}
+  .fb-cap{font-family:var(--serif);font-size:15px;color:var(--mute);}
+  .fb-score{font-family:var(--serif);font-size:64px;font-weight:600;line-height:1;
+    background:linear-gradient(135deg,var(--terra),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .dim{margin-bottom:13px;} .dim-h{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;font-weight:700;}
+  .dim-m{height:8px;border-radius:6px;background:var(--line);overflow:hidden;}
+  .dim-f{height:100%;border-radius:6px;transition:width .6s ease;}
+  .analyse{background:#FCEFE7;border:1.5px solid var(--peach);border-left:5px solid var(--terra);border-radius:14px;
+    padding:18px;margin-bottom:18px;font-size:14.5px;line-height:1.6;}
+  .fb-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+  .fb-card{background:#FFFDFB;border:1.5px solid var(--line);border-radius:16px;padding:18px;}
+  .fb-card h4{font-size:13.5px;margin-bottom:10px;}
+  .fb-card ul{padding-left:18px;display:flex;flex-direction:column;gap:7px;}
+  .fb-card li{font-size:13.5px;line-height:1.45;}
+  .fb-btns{display:flex;gap:12px;}
+  .fb-btns .btn{flex:1;padding:15px;border-radius:14px;font-size:14.5px;}
+  @media(max-width:600px){.g3,.g4,.g2,.fb-cols{grid-template-columns:1fr 1fr;}.panel{padding:22px 18px 26px;}}
+</style>
+</head>
+<body>
+<div class="head"><div class="head-in">
+  <div class="applogo">🩺</div>
+  <div>
+    <div class="title">PatientSim</div>
+    <div class="sub">Moeilijke patiëntgesprekken oefenen in een veilige simulatie</div>
+    <span class="pill">WERKT OFFLINE</span>
+  </div>
+</div></div>
+<div class="wrap"><div class="panel" id="app"></div></div>
+
+<script>
+"use strict";
+//==================== DATA ====================
+const SETTINGS=[
+ {id:"huisarts",label:"Huisarts",icon:"⚕️"},{id:"seh",label:"Spoedeisende hulp",icon:"🚑"},
+ {id:"poli",label:"Polikliniek",icon:"🏥"},{id:"verpleeg",label:"Verpleegafdeling",icon:"🛏️"},
+ {id:"triage",label:"Telefonische triage",icon:"☎️"},{id:"apotheek",label:"Apotheek / balie",icon:"💊"}];
+const PERSONAS=[
+ {id:"boos",label:"Boze patiënt",desc:"Onderbreekt, beschuldigt, dreigt met klacht",icon:"😠"},
+ {id:"wantrouwig",label:"Wantrouwige patiënt",desc:"Gelooft de arts niet, noemt internetbronnen",icon:"🤨"},
+ {id:"angstig",label:"Angstige patiënt",desc:"Paniek, herhaalt vragen, zoekt geruststelling",icon:"😰"},
+ {id:"veeleisend",label:"Veeleisende patiënt",desc:"Eist antibiotica, opioïden, scan of doorverwijzing",icon:"🙅"},
+ {id:"laaggeletterd",label:"Laaggeletterde patiënt",desc:"Begrijpt uitleg slecht, zegt 'ja' zonder begrip",icon:"😕"},
+ {id:"familie",label:"Familielid als drukfactor",desc:"Partner/kind domineert het gesprek",icon:"👪"},
+ {id:"nonadherent",label:"Non-adherente patiënt",desc:"Neemt medicatie niet, minimaliseert risico's",icon:"🤷"}];
+const SCENARIOS=[
+ "Patiënt eist antibiotica bij een virale luchtweginfectie",
+ "Patiënt is boos over de wachttijd",
+ "Patiënt weigert vaccinatie",
+ "Patiënt wil een onnodige MRI",
+ "Patiënt met chronische pijn vraagt om sterkere medicatie",
+ "Patiënt begrijpt de ontslaginstructies niet",
+ "Familielid beschuldigt zorgverlener van nalatigheid"];
+const LEVELS=[{id:1,label:"Niveau 1",desc:"Licht gespannen"},{id:2,label:"Niveau 2",desc:"Emotioneel en wantrouwig"},
+ {id:3,label:"Niveau 3",desc:"Boos, onderbrekend, escalerend"},{id:4,label:"Niveau 4",desc:"Klachtwaardig of ethisch complex"}];
+const MODES=[{id:"coach",label:"Coach-modus",desc:"Subtiele hints tijdens het gesprek",icon:"🧭"},
+ {id:"examen",label:"Examenmodus",desc:"Geen hints, alleen eindbeoordeling",icon:"📋"}];
+
+//==================== TAALANALYSE (offline) ====================
+const norm=t=>" "+t.toLowerCase().replace(/[^\wàáâäèéêëìíîïòóôöùúûü\s]/gi," ").replace(/\s+/g," ")+" ";
+const LEX={
+ empathie:["ik snap","ik begrijp","ik hoor","ik zie dat","vervelend","naar voor u","ik kan me voorstellen",
+   "dat klinkt","frustrerend","moeilijk voor u","ik merk","balen","ik voel met","serieus","sorry dat",
+   "wat naar","vervelend dat","begrijpelijk"],
+ vragen:["hoe","wat","waarom","welke","kunt u","mag ik","zou u","vertel","wat verwacht","wat hoopt",
+   "waar maakt u zich","wat zijn uw","hoe voelt"],
+ erkenning:["u heeft gelijk","goed punt","terechte","ik begrijp uw","dat is waar","klopt"],
+ uitleg:["omdat","daardoor","betekent","dit komt door","de reden","virus","bacterie","onderzoek toont",
+   "richtlijn","bijwerking","risico","werkt niet tegen","helpt niet","in uw geval"],
+ jargon:["pathogeen","etiologie","idiopathisch","contra-indicatie","prognose","anamnese","differentiaal",
+   "symptomatisch","systemisch","exacerbatie","comorbiditeit","farmacologisch"],
+ grenzen:["kan ik niet","ga ik niet","schrijf ik niet voor","niet verstandig","niet gepast","mijn verantwoordelijkheid",
+   "kan ik je niet geven","niet voorschrijven","houd ik vast","blijf ik bij","dat doe ik niet"],
+ shared:["samen","wat vindt u","laten we kijken","wat zou u willen","we kunnen kiezen","opties","keuze","afspreken",
+   "wat lijkt u","met u overleggen"],
+ veiligheidsnet:["als het erger wordt","neem dan contact","kom terug","bel ons","let op","waarschuw","als u",
+   "mocht","terug komen","alarm","spoed bellen"],
+ checkback:["heb ik het goed","klopt dat","kunt u herhalen","wat neemt u mee","is dit duidelijk","begrijpt u",
+   "vat u samen","wat gaat u doen"],
+ afpoeier:["gewoon","stelt niks voor","niks aan de hand","maak u niet druk","aanstellen","overdreven","onzin",
+   "dat moet u zelf weten","geen tijd","volgende","u zeurt","drammen"],
+ vijandig:["belachelijk","dom","onzin","luister","ik heb gezegd","punt uit","klaar","nee betekent nee"]};
+function analyze(text){
+ const t=norm(text);const f={};
+ for(const k in LEX) f[k]=LEX[k].filter(w=>t.includes(w)).length;
+ f.words=text.trim().split(/\s+/).filter(Boolean).length;
+ f.exclam=(text.match(/!/g)||[]).length;f.caps=/[A-Z]{4,}/.test(text);
+ return f;
+}
+
+//==================== PATIËNTMOTOR ====================
+const RESP={
+ veeleisend:{good:["Oké… als u het zo uitlegt. Maar wat moet ik dan doen om me beter te voelen?","Goed, ik snap dat antibiotica niet helpt. Maar wanneer voel ik me dan beter?","Hm, dat had nog niemand me zo verteld. Dan wacht ik het nog even af."],
+  neutral:["Maar mijn buurvrouw kreeg het wél en die was zo beter. Waarom ik niet?","Ik ben al vier dagen ziek. Ik wil niet met lege handen naar huis.","Dus u zegt eigenlijk dat ik gewoon moet afwachten?"],
+  bad:["Dus ik krijg gewoon niks? Dan ga ik wel naar een andere arts.","Ik voel me echt beroerd en u doet er niks aan. Dat kan toch niet?","U luistert niet eens naar me. Ik wil die antibiotica, punt."]},
+ boos:{good:["…oké. Fijn dat u dat erkent. Het zat me gewoon hoog.","Goed, dank dat u even de tijd neemt. Ik was gewoon gefrustreerd.","Dat lucht op. Sorry dat ik zo fel was."],
+  neutral:["Ik zit hier al een uur te wachten. Vindt u dat normaal?","Niemand vertelt me iets. Hoe lang gaat dit nog duren?","Ik ben het echt zat hier."],
+  bad:["Weet u wat, ik dien een klacht in. Dit is schandalig.","U neemt me totaal niet serieus! Ongelofelijk.","Ik wil uw naam. Hier hoort u nog van."]},
+ wantrouwig:{good:["Goed dat u het uitlegt. Misschien klopt dat internetverhaal toch niet helemaal.","Oké, dat klinkt logischer dan wat ik online las. Daar denk ik over na.","Fijn dat u mijn zorgen serieus neemt. Ik twijfelde echt."],
+  neutral:["Op internet stond iets heel anders. Hoe weet ik dat ú gelijk heeft?","Mijn vorige arts zei precies het tegenovergestelde.","Waarom zou ik dit zomaar aannemen?"],
+  bad:["U zegt maar wat. Ik geloof er niks van.","Jullie willen gewoon snel van me af. Typisch.","Ik vertrouw dit niet. Ik zoek het zelf wel uit."]},
+ angstig:{good:["Oké… als u het zo zegt voel ik me iets rustiger. Dank u.","Fijn dat u dat uitlegt, ik was echt in paniek. Even diep ademhalen.","Goed. Dus het is niet meteen iets ergs? Dat lucht op."],
+  neutral:["Maar is het wel echt niks ernstigs? Weet u het zeker?","Ik blijf me toch zorgen maken. Wat als het toch erger is?","Kunt u nog een keer zeggen wat ik nu moet doen?"],
+  bad:["U zegt dat het oké is maar ik geloof het niet, ik voel me zo slecht!","Niemand legt het uit en ik word hier alleen maar banger van.","Waarom doet u zo afstandelijk? Ik ben echt bang."]},
+ laaggeletterd:{good:["Aha, zó bedoelt u het. Nu snap ik het. Twee keer per dag, met eten.","Oké, dat is duidelijk zo. Eerst de blauwe, dan de witte. Begrepen.","Dank u, nu weet ik wat ik moet doen."],
+  neutral:["Eh… ja. (knikt) Hoeveel moest ik er ook alweer nemen?","Ja hoor. (kijkt onzeker) Dus 's ochtends of 's avonds?","Ja, ja. Snap ik. Wat zei u over die andere pil?"],
+  bad:["Ja. (begrijpt het duidelijk niet) Het is goed zo.","Ja hoor, komt goed. (haalt schouders op)","Dat is veel te ingewikkeld. Ik doe maar wat."]},
+ familie:{good:["(dochter) Dank u dat u even naar mijn moeder luistert. Dat stelt ons gerust.","(dochter) Oké, fijn dat u het samen met haar bespreekt. Dat waarderen we.","(dochter) Goed, dan vertrouwen we erop. Bedankt voor de uitleg."],
+  neutral:["(dochter) Mijn moeder kan dit niet zelf beslissen, dat doe ik wel.","(dochter) Ik wil precies weten wat er met haar gebeurt.","(dochter) Waarom is hier nog niks aan gedaan?"],
+  bad:["(dochter) U bent nalatig geweest! Dit had nooit mogen gebeuren.","(dochter) Ik ga dit hogerop melden, let op mijn woorden.","(dochter) U luistert niet naar de familie. Schandalig."]},
+ nonadherent:{good:["Oké, als het echt zo belangrijk is ga ik die pillen toch maar nemen.","Goed punt. Misschien onderschat ik het inderdaad. Ik probeer het.","Dank dat u het zo uitlegt zonder te oordelen. Ik pak het weer op."],
+  neutral:["Ach, ik voel me prima zonder die medicatie hoor.","Ik vergeet ze gewoon steeds, en ik merk er niks van.","Is het echt zo erg als ik er een paar oversla?"],
+  bad:["Het is mijn lichaam, ik bepaal zelf wel of ik die troep slik.","U overdrijft. Mijn opa werd ook 90 zonder pillen.","Ik heb hier geen zin in. Bemoei u er niet mee."]}};
+function patientReply(persona,band){
+ const bank=RESP[persona]||RESP.veeleisend;
+ const arr=band==="good"?bank.good:band==="bad"?bank.bad:bank.neutral;
+ return arr[Math.floor(Math.random()*arr.length)];
+}
+
+//==================== STATE ====================
+const S={setting:"huisarts",persona:"veeleisend",scenario:SCENARIOS[0],level:2,mode:"coach"};
+let stage="setup",messages=[],tension=35,turnLog=[];
+const el=id=>document.getElementById(id);
+const app=el("app");
+const obj=(arr,id)=>arr.find(x=>x.id===id);
+
+//==================== RENDER ====================
+function render(){ if(stage==="setup")renderSetup(); else if(stage==="chat")renderChat(); else renderFeedback(); }
+
+function renderSetup(){
+ const sec=(n,t,inner)=>`<div class="sec"><div class="sec-t"><span class="n">${n}</span>${t}</div>${inner}</div>`;
+ const ch=(active,attrs,inner,col,icon)=>`<div class="choice${col?' col':''}${active?' active':''}" ${attrs}>${icon?`<span class="ic">${icon}</span>`:""}${col?`<div>${inner}</div>`:inner}</div>`;
+ app.innerHTML=`<div class="fade">
+  ${sec(1,"Kies de setting",`<div class="grid g3">${SETTINGS.map(s=>ch(S.setting===s.id,`data-k="setting" data-v="${s.id}"`,`<span class="lab" style="font-weight:700">${s.label}</span>`,false,s.icon)).join("")}</div>`)}
+  ${sec(2,"Kies het patiënttype",`<div class="grid g2">${PERSONAS.map(p=>ch(S.persona===p.id,`data-k="persona" data-v="${p.id}"`,`<span class="lab">${p.label}</span><span class="d">${p.desc}</span>`,true,p.icon)).join("")}</div>`)}
+  ${sec(3,"Kies een scenario",`<div style="display:flex;flex-direction:column;gap:9px">${SCENARIOS.map(s=>ch(S.scenario===s,`data-k="scenario" data-v="${s.replace(/"/g,'&quot;')}"`,`<span style="font-size:14px">${s}</span>`)).join("")}</div>`)}
+  ${sec(4,"Moeilijkheidsgraad",`<div class="grid g4">${LEVELS.map(l=>ch(S.level===l.id,`data-k="level" data-v="${l.id}"`,`<span class="lab">${l.label}</span><span class="d">${l.desc}</span>`,true)).join("")}</div>`)}
+  ${sec(5,"Trainingsmodus",`<div class="grid g2">${MODES.map(m=>ch(S.mode===m.id,`data-k="mode" data-v="${m.id}"`,`<span class="lab">${m.label}</span><span class="d">${m.desc}</span>`,true,m.icon)).join("")}</div>`)}
+  <button class="btn btn-primary" id="start">Start consult →</button>
+  <p class="disc">Simulatie ter training — geen echte medische diagnose en geen vervanging van supervisie.</p>
+ </div>`;
+ app.querySelectorAll("[data-k]").forEach(n=>n.onclick=()=>{const k=n.dataset.k;let v=n.dataset.v;if(k==="level")v=+v;S[k]=v;renderSetup();});
+ el("start").onclick=startSim;
+}
+
+function renderChat(){
+ const so=obj(SETTINGS,S.setting),po=obj(PERSONAS,S.persona),lo=obj(LEVELS,S.level);
+ const tcolor=tension<40?"var(--sage)":tension<70?"var(--gold)":"var(--alert)";
+ const tlabel=tension<40?"Rustig":tension<70?"Gespannen":"Escalerend";
+ const userTurns=messages.filter(m=>m.role==="user").length;
+ app.innerHTML=`<div class="fade">
+  <div class="tagrow">
+   <button class="btn link" id="back">← Setup</button>
+   <span class="tag">${po.icon} ${po.label}</span><span class="tag">${so.label}</span>
+   <span class="tag">${lo.label}</span><span class="tag">${S.mode==="coach"?"🧭 Coach":"📋 Examen"}</span>
+  </div>
+  <div class="scen">${S.scenario}</div>
+  <div class="meter-h"><span style="color:var(--mute)">Escalatiemeter</span><span style="color:${tcolor}">${tlabel}</span></div>
+  <div class="meter"><div class="meter-f" style="width:${tension}%;background:${tcolor}"></div></div>
+  <div class="chat" id="chat"></div>
+  <div id="coachbox"></div>
+  <div class="inrow"><textarea id="inp" rows="2" placeholder="Typ wat je tegen de patiënt zegt…"></textarea>
+   <button class="btn btn-send" id="send">Stuur</button></div>
+  <button class="btn btn-end" id="end" ${userTurns===0?"disabled":""}>Consult afronden &amp; feedback ophalen</button>
+ </div>`;
+ const chat=el("chat");
+ chat.innerHTML=messages.map(m=>{const p=m.role==="patient";
+   return `<div class="bub-w ${p?'p':'u'}"><div class="bub-l">${p?'Patiënt':'Jij'}</div><div class="bub ${p?'p':'u'}">${escapeHtml(m.text)}</div></div>`;}).join("");
+ chat.scrollTop=chat.scrollHeight;
+ el("back").onclick=()=>{stage="setup";resetSim();render();};
+ el("send").onclick=send; el("end").onclick=endConsult;
+ const inp=el("inp"); inp.focus();
+ inp.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}};
+ const cb=el("coachbox");
+ if(S.mode==="coach"&&window.__lastHint){cb.innerHTML=`<div class="coach fade"><strong>🧭 Coach:</strong> ${window.__lastHint}</div>`;}
+}
+
+function hintFor(f){
+ if(f.empathie===0&&f.afpoeier>0) return "Benoem eerst de emotie vóór je inhoud geeft.";
+ if(f.empathie===0) return "Erken hoe de patiënt zich voelt voordat je uitlegt.";
+ if(f.jargon>0) return "Vermijd vakjargon — leg het uit in gewone taal.";
+ if(f.vragen===0) return "Vraag naar de zorgen en verwachtingen van de patiënt.";
+ if(f.checkback===0&&f.uitleg>0) return "Check met teach-back of de uitleg is overgekomen.";
+ if(f.shared===0) return "Betrek de patiënt in de beslissing (shared decision-making).";
+ return "Goed bezig — houd erkenning en duidelijke uitleg vast.";
+}
+
+//==================== ACTIONS ====================
+function startSim(){
+ resetSim();stage="chat";
+ const openers={
+  veeleisend:"Ik ben nu al dagen ziek en ik wil gewoon antibiotica, want zo schiet het niet op.",
+  boos:"Ik zit hier al veel te lang te wachten. Vindt u dat normaal?",
+  wantrouwig:"Ik heb online het een en ander gelezen, en ik weet niet of ik dit wel vertrouw.",
+  angstig:"Ik maak me echt heel veel zorgen, het voelt niet goed. Is het iets ergs?",
+  laaggeletterd:"Eh… de vorige dokter zei iets, maar ik snapte het niet zo goed.",
+  familie:"(dochter) Ik kom voor mijn moeder. Ik wil precies weten wat er aan de hand is.",
+  nonadherent:"Eerlijk gezegd neem ik die medicijnen niet meer, ik merk er toch niks van."};
+ messages=[{role:"patient",text:openers[S.persona]||openers.veeleisend}];
+ window.__lastHint="";render();
+}
+function send(){
+ const inp=el("inp");const text=(inp.value||"").trim();if(!text)return;
+ messages.push({role:"user",text});const f=analyze(text);turnLog.push(f);
+ let d=0;
+ d-=f.empathie*7;d-=f.vragen*3;d-=f.uitleg*3;d-=f.erkenning*6;d-=f.shared*4;d-=f.checkback*3;
+ d+=f.afpoeier*10;d+=f.jargon*5;d+=f.vijandig*9;d+=f.exclam*3;if(f.caps)d+=8;if(f.words<3)d+=4;
+ d+={1:-4,2:0,3:4,4:8}[S.level];
+ tension=Math.max(0,Math.min(100,Math.round(tension+d)));
+ let band;
+ if(d<=-8&&tension<55)band="good"; else if(d>=8||tension>=70)band="bad"; else band="neutral";
+ messages.push({role:"patient",text:patientReply(S.persona,band)});
+ window.__lastHint=hintFor(f);inp.value="";render();
+}
+function endConsult(){stage="feedback";render();setTimeout(computeFeedback,650);}
+function resetSim(){messages=[];tension=35;turnLog=[];window.__lastHint="";}
+
+//==================== FEEDBACK ====================
+const DIM=[["empathie","Empathie"],["uitleg","Begrijpelijke uitleg"],["deescalatie","De-escalatie"],
+ ["grenzen","Grenzen stellen"],["shared","Shared decision-making"],["veiligheid","Veiligheidsnetadvies"],
+ ["medisch","Medische juistheid"],["checkback","Samenvatten & check-back"]];
+function computeFeedback(){
+ const agg={};["empathie","vragen","erkenning","uitleg","jargon","grenzen","shared","veiligheidsnet","checkback","afpoeier","vijandig"].forEach(k=>agg[k]=0);
+ turnLog.forEach(f=>{for(const k in agg)agg[k]+=f[k]||0;});
+ const clamp=v=>Math.max(5,Math.min(100,Math.round(v)));
+ const scores={
+  empathie:clamp(35+agg.empathie*22+agg.erkenning*10-agg.afpoeier*18-agg.vijandig*15),
+  uitleg:clamp(40+agg.uitleg*16-agg.jargon*18+agg.checkback*6),
+  deescalatie:clamp(70-(tension-35)-agg.afpoeier*12-agg.vijandig*16+agg.empathie*8),
+  grenzen:clamp(40+agg.grenzen*26),
+  shared:clamp(35+agg.shared*24+agg.vragen*6),
+  veiligheid:clamp(30+agg.veiligheidsnet*32),
+  medisch:clamp(55+agg.uitleg*10-agg.jargon*4),
+  checkback:clamp(30+agg.checkback*30+agg.vragen*4)};
+ const avg=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/8);
+ const sterk=[],verbeter=[];
+ if(scores.empathie>=65)sterk.push("Je erkende de emotie van de patiënt voordat je inhoud gaf.");
+ if(scores.uitleg>=65)sterk.push("Je uitleg was concreet en in begrijpelijke taal.");
+ if(scores.deescalatie>=65)sterk.push("Je hield de spanning laag en werkte de-escalerend.");
+ if(scores.grenzen>=60)sterk.push("Je stelde duidelijke, professionele grenzen.");
+ if(scores.shared>=60)sterk.push("Je betrok de patiënt actief in de besluitvorming.");
+ if(scores.veiligheid>=60)sterk.push("Je gaf helder veiligheidsnetadvies.");
+ if(scores.checkback>=60)sterk.push("Je controleerde met check-back of de boodschap aankwam.");
+ if(!sterk.length)sterk.push("Je bleef in gesprek met een lastige patiënt — een goed startpunt.");
+ if(scores.empathie<60)verbeter.push("Benoem de emotie eerst ('Ik hoor dat u zich niet serieus genomen voelt').");
+ if(agg.jargon>0)verbeter.push("Vervang vakjargon door alledaagse taal.");
+ if(scores.shared<55)verbeter.push("Bied opties aan en vraag wat de patiënt zelf wil.");
+ if(scores.veiligheid<55)verbeter.push("Sluit af met een vangnet: wanneer moet de patiënt terugkomen?");
+ if(scores.checkback<55)verbeter.push("Gebruik teach-back: laat de patiënt navertellen wat hij meeneemt.");
+ if(scores.grenzen<50&&(S.persona==="veeleisend"||S.persona==="nonadherent"))verbeter.push("Stel een vriendelijke maar duidelijke grens bij onterechte eisen.");
+ if(!verbeter.length)verbeter.push("Verfijn timing: emotie erkennen, dán uitleggen, dán samen beslissen.");
+ let analyse;
+ if(scores.empathie<55&&agg.uitleg>0)analyse="Je gaf inhoudelijk correcte informatie, maar te snel — vóór je de emotie van de patiënt benoemde. Daardoor bleef de patiënt defensief. Een betere opening was: \"Ik hoor dat u zich niet serieus genomen voelt. Laten we samen kijken wat er aan de hand is.\"";
+ else if(tension>=70)analyse="Het gesprek escaleerde gaandeweg. Op spanningsmomenten hielp doordrukken niet; een korte erkenning (\"Ik merk dat dit u hoog zit\") had de patiënt eerder tot rust gebracht voordat je verderging met de inhoud.";
+ else if(avg>=70)analyse="Sterk consult: je balanceerde erkenning, duidelijke uitleg en betrokkenheid goed. Laatste verfijning: sluit altijd af met een concreet vangnetadvies en een check-back.";
+ else analyse="Een redelijk verlopen gesprek. De grootste winst zit in de volgorde: eerst de emotie erkennen, daarna in gewone taal uitleggen, en afsluiten met samen beslissen en een vangnetadvies.";
+ renderFeedback({scores,avg,sterk,verbeter,analyse});
+}
+let __fb=null;
+function renderFeedback(data){
+ if(!data&&!__fb){app.innerHTML=`<div class="fade" style="text-align:center;padding:60px;color:var(--mute);font-family:var(--serif);font-size:20px">Consult wordt geanalyseerd…</div>`;return;}
+ if(data)__fb=data;const d=__fb;
+ const bar=(label,v)=>`<div class="dim"><div class="dim-h"><span>${label}</span><span>${v}</span></div><div class="dim-m"><div class="dim-f" style="width:${v}%;background:${v<50?'var(--terra)':'var(--sage)'}"></div></div></div>`;
+ app.innerHTML=`<div class="fade">
+  <div class="fb-top"><div class="fb-cap">Consultanalyse</div><div class="fb-score">${d.avg}</div><div class="sub">gemiddelde score</div></div>
+  ${DIM.map(([k,l])=>bar(l,d.scores[k])).join("")}
+  <div class="analyse">${escapeHtml(d.analyse)}</div>
+  <div class="fb-cols">
+   <div class="fb-card"><h4 style="color:var(--sageDeep)">✓ Sterke punten</h4><ul>${d.sterk.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></div>
+   <div class="fb-card"><h4 style="color:var(--terraDeep)">→ Verbeterpunten</h4><ul>${d.verbeter.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></div>
+  </div>
+  <div class="fb-btns">
+   <button class="btn" id="retry" style="background:linear-gradient(135deg,var(--terra),var(--terraDeep));color:#fff">Opnieuw dit scenario</button>
+   <button class="btn" id="new" style="background:#FFFDFB;border:2px solid var(--line);color:var(--ink)">Nieuw consult</button>
+  </div></div>`;
+ el("retry").onclick=()=>{__fb=null;startSim();};
+ el("new").onclick=()=>{__fb=null;stage="setup";resetSim();render();};
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+//==================== FONT (optioneel, faalt stil offline) ====================
+(function(){try{const l=document.createElement("link");l.rel="stylesheet";
+ l.href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap";
+ document.head.appendChild(l);}catch(e){}})();
+render();
+</script>
+</body>
+</html>
