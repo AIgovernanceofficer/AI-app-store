@@ -3,7 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://CaspervanWetten.github.io/AI-app-store/",
   "scripts": {
+    "pre-deploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -13,6 +16,7 @@
     "@huggingface/transformers": "^4.2.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.8",
+    "gh-pages": "^6.3.0",
     "idb": "^8.0.3",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
