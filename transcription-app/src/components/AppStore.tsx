@@ -97,7 +97,7 @@ const APPS: AppEntry[] = [
         bg: "var(--sand)",
         desc: "Oefen als student GNK of DGK met lastige communicatie scenarios zonder internetverbinding.", 
         url: "patientsim.html",
-        status: "live" 
+        status: "soon" 
     },
 ];
 
