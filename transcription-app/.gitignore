@@ -1,7 +1,3 @@
-.env
-
-
-## Default NPM .gitignore:
 # Logs
 logs
 *.log
